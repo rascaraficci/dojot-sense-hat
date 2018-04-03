@@ -148,7 +148,7 @@ class DojotAgent (object):
         self._logger.info("Subscribing to topic {}".format(topic))
         self._mqttc.subscribe(topic)
         self._mqttc.message_callback_add(topic, self._on_command)
-        self._logger.info('Expecting command {{"message": "<text>"}} in topic {}'.
+        self._logger.info('Expecting command {{"attrs": {{"message": "<text>"}} }} in topic {}'.
                           format(topic))
 
     def _on_command(self, mqttc, obj, msg):
@@ -160,8 +160,8 @@ class DojotAgent (object):
             return
 
         self._logger.info("Received command {}".format(command))
-        if 'message' in command:
-            message = command['message']
+        if 'message' in command['attrs']:
+            message = command['attrs']['message']
             self._logger.info("Writing message {} into the led matrix.".
                               format(message))
             self._sense.clear()
