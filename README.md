@@ -4,7 +4,7 @@ It integrates raspberry pi/sense hat with dojot IoT platform.
 The sensors are read periodically and their values are published through MQTT protocol to dojot.
 
 You can also send a message to be shown on the sense hat display, publishing to MQTT topic
-```\<tenant>\<device_id>\actuate``` with payload ```{"message": "<text>"}```.
+```\<tenant>\<device_id>\config``` with payload ```{"message": "<text>"}```.
 
 # Installation
 To install into raspberry pi run:

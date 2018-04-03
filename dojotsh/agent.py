@@ -142,8 +142,8 @@ class DojotAgent (object):
                             format(response.status_code))
 
     def _subscribe_to_mqtt_broker(self):
-        # expected topic /<tenant>/<device_id>/actuate
-        topic = "/{}/{}/actuate".format(self._tenant,
+        # expected topic /<tenant>/<device_id>/config
+        topic = "/{}/{}/config".format(self._tenant,
                                         self._device_id)
         self._logger.info("Subscribing to topic {}".format(topic))
         self._mqttc.subscribe(topic)
