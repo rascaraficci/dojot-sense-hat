@@ -23,7 +23,7 @@ class DojotAgent (object):
         self._hw_serial = self._get_raspberry_pi_serial()
 
         # dojot device ID
-        self._device_id = None
+        self._device_id = self._has_dojot_been_set()
 
         # connect to dojot MQTT broker
         self._mqttc = mqtt.Client(self._hw_serial)
@@ -31,7 +31,8 @@ class DojotAgent (object):
         self._mqttc.loop_start()
 
         # create template and device instances in dojot
-        self._set_raspeberry_pi_in_dojot()
+        if self._device_id is None:
+            self._set_raspeberry_pi_in_dojot()
 
         # register callbacks to handle actuation
         self._subscribe_to_mqtt_broker()
@@ -53,8 +54,38 @@ class DojotAgent (object):
 
         return serial
 
+    def _has_dojot_been_set(self):
+        # Get JWT token
+        self._logger.info("Getting JWT token ...")
+        url = 'http://{}:8000/auth'.format(self._host)
+        data = {"username": "{}".format(self._user),
+                "passwd": "{}".format(self._password)}
+        response = requests.post(url=url, json=data)
+        token = response.json()['jwt']
+        if response.status_code != 200:
+            self._logger.error("HTTP POST to get JWT token failed ({}).".
+                               format(response.status_code))
+            raise Exception("HTTP POST failed {}.".
+                            format(response.status_code))
+        auth_header = {"Authorization": "Bearer {}".format(token)}
+        self._logger.info("Got JWT token {}".format(token))
+
+        # Check whether raspberry has been set in dojot
+        url = 'http://{}:8000/device'.format(self._host)
+        response = requests.get(url=url, headers=auth_header)
+        if response.status_code != 200:
+            raise Exception("HTTP POST failed {}.".
+                            format(response.status_code))
+        all_devices = list(response.json()['devices'])
+
+        for dev in all_devices:
+            if dev['label'] == 'Raspberry-Pi':
+                return dev['id']
+
+        return None
+
     def _set_raspeberry_pi_in_dojot(self):
-        # get JWT token
+        # Get JWT token
         self._logger.info("Getting JWT token ...")
         url = 'http://{}:8000/auth'.format(self._host)
         data = {"username": "{}".format(self._user),
