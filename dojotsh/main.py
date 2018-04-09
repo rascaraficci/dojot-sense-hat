@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     # MQTT broker - IP
     parser.add_option("-H", "--host", dest="host", default="127.0.0.1",
-                      help="MQTT host to connect. Defaults to localhost.")
+                      help="MQTT host to connect to. Defaults to localhost.")
 
     # MQTT broker - Port
     parser.add_option("-P", "--port", dest="port", type="int", default=1883,
