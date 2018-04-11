@@ -1,11 +1,11 @@
 # Dojot Sense Hat Agent
-It integrates raspberry pi (+ sense hat) with dojot IoT platform.
+It integrates Raspberry Pi - Sense Hat with dojot IoT platform.
 
-The sensors (temperature, pressure, and humidity) are read periodically and their values are published
+The sensors (temperature, pressure, and humidity) are periodically read and their values are published
 through MQTT protocol to dojot.
 
-Through dojot you can also send a message to be shown on the Sense Hat display. The message
-is sent to MQTT topic ```/<tenant>/<device_id>/config``` with payload ```{"attrs": {"message": "<text>"}}```.
+Using dojot flow processor you can also send a message to be shown on the Sense Hat display. The message
+should be sent to MQTT topic ```/<tenant>/<device_id>/config``` with payload ```{"attrs": {"message": "<text>"}}```.
 
 # Instructions
 
@@ -17,12 +17,12 @@ You'll need:
 
 In the Raspberry Pi 3, run:
 
-```
-$ apt-get install sense-hat
-$ git clone https://github.com/rascaraficci/dojot-sense-hat.git
-$ cd dojot-sense-hat
-$ pip3 install -r requirements.txt
-$ python3 -m dojotsh.main -H <dojot HOST>
+```shell
+> apt-get install sense-hat
+> git clone https://github.com/rascaraficci/dojot-sense-hat.git
+> cd dojot-sense-hat
+> pip3 install -r requirements.txt
+> python3 -m dojotsh.main -H <dojot HOST>
 ```
 
 I advise to install *sense-hat* through *apt-get* instead of *pip* in order to avoid some dependency problems.
@@ -34,7 +34,7 @@ The data will be available in dojot as illustrated in the image bellow.
 
 ![Raspberry Pi data received by dojot](images/dojot-raspberry-pi-device-details.png)
 
-You can actuate writing a processing flow in dojot as illustrated bellow.
+You can actuate writing a processing flow as illustrated bellow.
 
 ![dojot flow for actuation](images/dojot-raspberry-pi-actuation1.jpg)
 
@@ -44,8 +44,11 @@ the Raspberry Pi that shows it in the Sense Hat Led Matrix.
 ![Raspberry Pi received a command sent by dojot](images/dojot-raspberry-pi-actuation2.jpg)
 
 # Usage
-```
-$ python3 -m dojotsh.main -h
+
+Some parameters of the script can be adjusted if necessary.
+
+```shell
+> python3 -m dojotsh.main -h
 Usage: main.py [options]
 
 Options:
@@ -60,3 +63,12 @@ Options:
   -i INTERVAL, --interval=INTERVAL
                         Polling interval in seconds. Defaults to 15.
 ```
+
+# What to do if I don't have a Sense Hat and not even a Raspberry pi?
+
+You can emulate the Sense Hat on Linux using the
+[Sense Hat Emulator](https://github.com/RPi-Distro/python-sense-emu).
+In this case, you only need to replace the python package sense_hat by
+the package sense-emu.
+
+![Emulated Sense Hat](images/dojot-emulated-sense-hat.png)
