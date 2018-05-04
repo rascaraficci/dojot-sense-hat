@@ -13,7 +13,7 @@ setup(
     install_requires=[
         'paho-mqtt',
         'requests',
-        'sense_hat'
+        'sense_emu'
     ],
     python_requires='>=3.0.0',
     author='Rafael Augusto Scaraficci',

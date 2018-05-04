@@ -3,7 +3,7 @@ import logging
 import requests
 import json
 import paho.mqtt.client as mqtt
-from sense_hat import SenseHat
+from sense_emu import SenseHat
 
 class DojotAgent (object):
 
