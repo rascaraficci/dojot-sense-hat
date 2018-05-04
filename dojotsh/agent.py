@@ -7,7 +7,7 @@ from sense_hat import SenseHat
 
 class DojotAgent (object):
 
-    def __init__(self, host, port, tenant, user, password, interval):
+    def __init__(self, host, port, tenant, user, password, secure, interval):
         # set logger
         self._logger = logging.getLogger('raspberry-pi.dojot.agent')
 
@@ -17,6 +17,7 @@ class DojotAgent (object):
         self._tenant = tenant
         self._user = user
         self._password = password
+        self._secure = secure
         self._interval = interval
 
         # get raspberry pi serial number
@@ -57,10 +58,13 @@ class DojotAgent (object):
     def _has_dojot_been_set(self):
         # Get JWT token
         self._logger.info("Getting JWT token ...")
-        url = 'http://{}:8000/auth'.format(self._host)
+        if self._secure:
+            url = 'https://{}/auth'.format(self._host)
+        else:
+            url = 'http://{}:8000/auth'.format(self._host)
         data = {"username": "{}".format(self._user),
                 "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data)
+        response = requests.post(url=url, json=data, verify=False)
         token = response.json()['jwt']
         if response.status_code != 200:
             self._logger.error("HTTP POST to get JWT token failed ({}).".
@@ -71,8 +75,11 @@ class DojotAgent (object):
         self._logger.info("Got JWT token {}".format(token))
 
         # Check whether raspberry has been set in dojot
-        url = 'http://{}:8000/device'.format(self._host)
-        response = requests.get(url=url, headers=auth_header)
+        if self._secure:
+            url = 'https://{}/device'.format(self._host)
+        else:
+            url = 'http://{}:8000/device'.format(self._host)
+        response = requests.get(url=url, headers=auth_header, verify=False)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -87,10 +94,13 @@ class DojotAgent (object):
     def _set_raspeberry_pi_in_dojot(self):
         # Get JWT token
         self._logger.info("Getting JWT token ...")
-        url = 'http://{}:8000/auth'.format(self._host)
+        if self._secure:
+            url = 'https://{}/auth'.format(self._host)
+        else:
+            url = 'http://{}:8000/auth'.format(self._host)
         data = {"username": "{}".format(self._user),
                 "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data)
+        response = requests.post(url=url, json=data, verify=False)
         token = response.json()['jwt']
         if response.status_code != 200:
             self._logger.error("HTTP POST to get JWT token failed ({}).".
@@ -102,7 +112,10 @@ class DojotAgent (object):
 
         # create template
         self._logger.info("Creating raspberry-pi template in dojot ...")
-        url = 'http://{}:8000/template'.format(self._host)
+        if self._secure:
+            url = 'https://{}/template'.format(self._host)
+        else:
+            url = 'http://{}:8000/template'.format(self._host)
         data = {"label": "Raspberry-Pi-Sense-Hat",
                 "attrs": [{"label": "protocol",
                            "type": "meta",
@@ -125,7 +138,7 @@ class DojotAgent (object):
                            "value_type": "string",
                            "static_value": "undefined"}
                           ]}
-        response = requests.post(url=url, headers=auth_header, json=data)
+        response = requests.post(url=url, headers=auth_header, json=data, verify=False)
         if response.status_code != 200:
             self._logger.error("HTTP POST to create template failed ({}).".
                                format(response.status_code))
@@ -137,10 +150,13 @@ class DojotAgent (object):
 
         # create device
         self._logger.info("Creating raspberry-pi device in dojot ...")
-        url = 'http://{}:8000/device'.format(self._host)
+        if self._secure:
+            url = 'https://{}/device'.format(self._host)
+        else:
+            url = 'http://{}:8000/device'.format(self._host)
         data = {"templates": ["{}".format(template_id)],
                 "label": "Raspberry-Pi"}
-        response = requests.post(url=url, headers=auth_header, json=data)
+        response = requests.post(url=url, headers=auth_header, json=data, verify=False)
         if response.status_code != 200:
             self._logger.error("HTTP POST to create device failed ({}).".
                                format(response.status_code))
@@ -151,9 +167,14 @@ class DojotAgent (object):
         self._logger.info("Created device {}".format(self._device_id))
 
         # set serial number
-        url = 'http://{}:8000/device/{}'.format(self._host, self._device_id)
+        if self._secure:
+            url = 'https://{}/device/{}'.format(self._host, self._device_id)
+
+        else:
+            url = 'http://{}:8000/device/{}'.format(self._host, self._device_id)
+
         # Get
-        response = requests.get(url=url, headers=auth_header)
+        response = requests.get(url=url, headers=auth_header, verify=False)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -167,7 +188,7 @@ class DojotAgent (object):
         data['attrs'] = attrs_static
 
         # Put
-        response = requests.put(url=url, headers=auth_header, json=data)
+        response = requests.put(url=url, headers=auth_header, json=data, verify=False)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))

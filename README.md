@@ -60,6 +60,7 @@ Options:
   -u USER, --user=USER  User identifier in dojot. Defaults to admin.
   -p PASSWORD, --password=PASSWORD
                         User password in dojot. Defaults to admin.
+  -s                    Enables https communication with dojot.
   -i INTERVAL, --interval=INTERVAL
                         Polling interval in seconds. Defaults to 15.
 ```

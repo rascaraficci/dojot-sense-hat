@@ -37,6 +37,10 @@ if __name__ == '__main__':
     parser.add_option("-p", "--password", dest="password", default="admin",
                       help="User password in dojot. Defaults to admin.")
 
+    # dojot - https or http
+    parser.add_option("-s", action="store_true", dest="secure", default=False,
+                      help="Enables https communication with dojot.")
+
     # polling interval
     parser.add_option("-i", "--interval", dest="interval", type="int", default=15,
                       help="Polling interval in seconds. Defaults to 15.")
@@ -50,6 +54,7 @@ if __name__ == '__main__':
                        options.tenant,
                        options.user,
                        options.password,
+                       options.secure,
                        options.interval)
 
     agent.run()
