@@ -5,6 +5,7 @@ import json
 import paho.mqtt.client as mqtt
 from sense_hat import SenseHat
 
+
 class DojotAgent (object):
 
     def __init__(self, host, port, tenant, user, password, secure, interval):
@@ -64,7 +65,7 @@ class DojotAgent (object):
             url = 'http://{}:8000/auth'.format(self._host)
         data = {"username": "{}".format(self._user),
                 "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data, verify=False)
+        response = requests.post(url=url, json=data)
         token = response.json()['jwt']
         if response.status_code != 200:
             self._logger.error("HTTP POST to get JWT token failed ({}).".
@@ -79,7 +80,7 @@ class DojotAgent (object):
             url = 'https://{}/device'.format(self._host)
         else:
             url = 'http://{}:8000/device'.format(self._host)
-        response = requests.get(url=url, headers=auth_header, verify=False)
+        response = requests.get(url=url, headers=auth_header)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -100,7 +101,7 @@ class DojotAgent (object):
             url = 'http://{}:8000/auth'.format(self._host)
         data = {"username": "{}".format(self._user),
                 "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data, verify=False)
+        response = requests.post(url=url, json=data)
         token = response.json()['jwt']
         if response.status_code != 200:
             self._logger.error("HTTP POST to get JWT token failed ({}).".
@@ -138,7 +139,7 @@ class DojotAgent (object):
                            "value_type": "string",
                            "static_value": "undefined"}
                           ]}
-        response = requests.post(url=url, headers=auth_header, json=data, verify=False)
+        response = requests.post(url=url, headers=auth_header, json=data)
         if response.status_code != 200:
             self._logger.error("HTTP POST to create template failed ({}).".
                                format(response.status_code))
@@ -156,7 +157,7 @@ class DojotAgent (object):
             url = 'http://{}:8000/device'.format(self._host)
         data = {"templates": ["{}".format(template_id)],
                 "label": "Raspberry-Pi"}
-        response = requests.post(url=url, headers=auth_header, json=data, verify=False)
+        response = requests.post(url=url, headers=auth_header, json=data)
         if response.status_code != 200:
             self._logger.error("HTTP POST to create device failed ({}).".
                                format(response.status_code))
@@ -174,7 +175,7 @@ class DojotAgent (object):
             url = 'http://{}:8000/device/{}'.format(self._host, self._device_id)
 
         # Get
-        response = requests.get(url=url, headers=auth_header, verify=False)
+        response = requests.get(url=url, headers=auth_header)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -188,7 +189,7 @@ class DojotAgent (object):
         data['attrs'] = attrs_static
 
         # Put
-        response = requests.put(url=url, headers=auth_header, json=data, verify=False)
+        response = requests.put(url=url, headers=auth_header, json=data)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
