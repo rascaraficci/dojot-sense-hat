@@ -46,7 +46,7 @@ if __name__ == '__main__':
                       help="Polling interval in seconds. Defaults to 15.")
 
     (options, args) = parser.parse_args()
-    logger.info("Options: {}".format(options))
+    logger.info("Options: %s", str(options))
 
     # Run agent
     agent = DojotAgent(options.host,

@@ -24,6 +24,24 @@ class DojotAgent (object):
         # get raspberry pi serial number
         self._hw_serial = self._get_raspberry_pi_serial()
 
+        # dojot jwt token
+        self._logger.info("Getting JWT token ...")
+        if self._secure:
+            url = 'https://{}/auth'.format(self._host)
+        else:
+            url = 'http://{}:8000/auth'.format(self._host)
+        data = {"username": "{}".format(self._user),
+                "passwd": "{}".format(self._password)}
+        response = requests.post(url=url, json=data)
+        if response.status_code != 200:
+            self._logger.error("HTTP POST to get JWT token failed (%s).",
+                               response.status_code)
+            raise Exception("HTTP POST failed {}.".
+                            format(response.status_code))
+        token = response.json()['jwt']
+        self._auth_header = {"Authorization": "Bearer {}".format(token)}
+        self._logger.info("Got JWT token %s", token)
+
         # dojot device ID
         self._device_id = self._has_dojot_been_set()
 
@@ -57,30 +75,12 @@ class DojotAgent (object):
         return serial
 
     def _has_dojot_been_set(self):
-        # Get JWT token
-        self._logger.info("Getting JWT token ...")
-        if self._secure:
-            url = 'https://{}/auth'.format(self._host)
-        else:
-            url = 'http://{}:8000/auth'.format(self._host)
-        data = {"username": "{}".format(self._user),
-                "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data)
-        token = response.json()['jwt']
-        if response.status_code != 200:
-            self._logger.error("HTTP POST to get JWT token failed ({}).".
-                               format(response.status_code))
-            raise Exception("HTTP POST failed {}.".
-                            format(response.status_code))
-        auth_header = {"Authorization": "Bearer {}".format(token)}
-        self._logger.info("Got JWT token {}".format(token))
-
         # Check whether raspberry has been set in dojot
         if self._secure:
             url = 'https://{}/device'.format(self._host)
         else:
             url = 'http://{}:8000/device'.format(self._host)
-        response = requests.get(url=url, headers=auth_header)
+        response = requests.get(url=url, headers=self._auth_header)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -93,24 +93,6 @@ class DojotAgent (object):
         return None
 
     def _set_raspeberry_pi_in_dojot(self):
-        # Get JWT token
-        self._logger.info("Getting JWT token ...")
-        if self._secure:
-            url = 'https://{}/auth'.format(self._host)
-        else:
-            url = 'http://{}:8000/auth'.format(self._host)
-        data = {"username": "{}".format(self._user),
-                "passwd": "{}".format(self._password)}
-        response = requests.post(url=url, json=data)
-        token = response.json()['jwt']
-        if response.status_code != 200:
-            self._logger.error("HTTP POST to get JWT token failed ({}).".
-                               format(response.status_code))
-            raise Exception("HTTP POST failed {}.".
-                            format(response.status_code))
-        auth_header = {"Authorization": "Bearer {}".format(token)}
-        self._logger.info("Got JWT token {}".format(token))
-
         # create template
         self._logger.info("Creating raspberry-pi template in dojot ...")
         if self._secure:
@@ -139,15 +121,15 @@ class DojotAgent (object):
                            "value_type": "string",
                            "static_value": "undefined"}
                           ]}
-        response = requests.post(url=url, headers=auth_header, json=data)
+        response = requests.post(url=url, headers=self._auth_header, json=data)
         if response.status_code != 200:
-            self._logger.error("HTTP POST to create template failed ({}).".
-                               format(response.status_code))
+            self._logger.error("HTTP POST to create template failed (%s).", 
+                               response.status_code)
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
 
         template_id = response.json()['template']['id']
-        self._logger.info("Created template {}".format(template_id))
+        self._logger.info("Created template %s", template_id)
 
         # create device
         self._logger.info("Creating raspberry-pi device in dojot ...")
@@ -157,15 +139,15 @@ class DojotAgent (object):
             url = 'http://{}:8000/device'.format(self._host)
         data = {"templates": ["{}".format(template_id)],
                 "label": "Raspberry-Pi"}
-        response = requests.post(url=url, headers=auth_header, json=data)
+        response = requests.post(url=url, headers=self._auth_header, json=data)
         if response.status_code != 200:
-            self._logger.error("HTTP POST to create device failed ({}).".
-                               format(response.status_code))
+            self._logger.error("HTTP POST to create device failed (%s).", 
+                               response.status_code)
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
 
         self._device_id = response.json()['devices'][0]['id']
-        self._logger.info("Created device {}".format(self._device_id))
+        self._logger.info("Created device %s", self._device_id)
 
         # set serial number
         if self._secure:
@@ -175,7 +157,7 @@ class DojotAgent (object):
             url = 'http://{}:8000/device/{}'.format(self._host, self._device_id)
 
         # Get
-        response = requests.get(url=url, headers=auth_header)
+        response = requests.get(url=url, headers=self._auth_header)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -189,7 +171,7 @@ class DojotAgent (object):
         data['attrs'] = attrs_static
 
         # Put
-        response = requests.put(url=url, headers=auth_header, json=data)
+        response = requests.put(url=url, headers=self._auth_header, json=data)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
                             format(response.status_code))
@@ -198,13 +180,13 @@ class DojotAgent (object):
         # expected topic /<tenant>/<device_id>/config
         topic = "/{}/{}/config".format(self._tenant,
                                         self._device_id)
-        self._logger.info("Subscribing to topic {}".format(topic))
+        self._logger.info("Subscribing to topic %s", topic)
         self._mqttc.subscribe(topic)
         self._mqttc.message_callback_add(topic, self._on_command)
-        self._logger.info('Expecting command {{"attrs": {{"message": "<text>"}} }} in topic {}'.
-                          format(topic))
+        self._logger.info('Expecting command {{"attrs": {{"message": "<text>"}} }} in topic %s',
+                          topic)
 
-    def _on_command(self, mqttc, obj, msg):
+    def _on_command(self, _mqttc, _obj, msg):
         # expected command {"message": "<text>"}
         try:
             command = json.loads(msg.payload.decode())
@@ -212,32 +194,32 @@ class DojotAgent (object):
             self._logger.error("Command is not coded as a JSON")
             return
 
-        self._logger.info("Received command {}".format(command))
+        self._logger.info("Received command %s", command)
         if 'message' in command['attrs']:
             message = command['attrs']['message']
-            self._logger.info("Writing message {} into the led matrix.".
-                              format(message))
+            self._logger.info("Writing message %s into the led matrix.", 
+                              message)
             self._sense.clear()
             self._sense.show_message(message)
         else:
-            self._logger.error("Unexpected command {}. Nothing will be done.".
-                               format(command))
+            self._logger.error("Unexpected command %s. Nothing will be done.", 
+                               command)
 
     def _read_sensors(self):
         # temperature
         self._logger.info("Getting temperature ...")
         temperature = self._sense.temperature
-        self._logger.info("Got temperature {}".format(temperature))
+        self._logger.info("Got temperature %s", temperature)
 
         # humidity
         self._logger.info("Getting humidity ...")
         humidity = self._sense.humidity
-        self._logger.info("Got humidity {}".format(humidity))
+        self._logger.info("Got humidity %s", humidity)
 
         # pressure
         self._logger.info("Getting pressure ...")
         pressure = self._sense.pressure
-        self._logger.info("Got pressure {}".format(pressure))
+        self._logger.info("Got pressure %s", pressure)
 
         return temperature, humidity, pressure
 
@@ -248,7 +230,7 @@ class DojotAgent (object):
                     'humidity': humidity,
                     'pressure': pressure}
             # publish data
-            self._logger.info("Publishing: {}".format(json.dumps(data)))
+            self._logger.info("Publishing: %s", json.dumps(data))
             self._mqttc.publish("/{}/{}/attrs".format(self._tenant,
                                                       self._device_id),
                                 json.dumps(data))
