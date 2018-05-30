@@ -25,6 +25,10 @@ if __name__ == '__main__':
     parser.add_option("-P", "--port", dest="port", type="int", default=1883,
                       help="MQTT port to connect to. Defaults to 1883.")
 
+    # API Gateway - IP
+    parser.add_option("-G", "--api-gateway", dest="gw", default="127.0.0.1",
+                      help="API Gateway to connect to. Defaults to localhost.")
+
     # dojot - Tenant ID
     parser.add_option("-t", "--tenant", dest="tenant", default="admin",
                       help="Tenant identifier in dojot. Defaults to admin.")
@@ -51,6 +55,7 @@ if __name__ == '__main__':
     # Run agent
     agent = DojotAgent(options.host,
                        options.port,
+                       options.gw,
                        options.tenant,
                        options.user,
                        options.password,

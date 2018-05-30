@@ -8,13 +8,14 @@ from sense_hat import SenseHat
 
 class DojotAgent (object):
 
-    def __init__(self, host, port, tenant, user, password, secure, interval):
+    def __init__(self, host, port, gw, tenant, user, password, secure, interval):
         # set logger
         self._logger = logging.getLogger('raspberry-pi.dojot.agent')
 
         # keep connection parameters
         self._host = host
         self._port = port
+        self._gw = gw
         self._tenant = tenant
         self._user = user
         self._password = password
@@ -27,9 +28,9 @@ class DojotAgent (object):
         # dojot jwt token
         self._logger.info("Getting JWT token ...")
         if self._secure:
-            url = 'https://{}/auth'.format(self._host)
+            url = 'https://{}/auth'.format(self._gw)
         else:
-            url = 'http://{}:8000/auth'.format(self._host)
+            url = 'http://{}:8000/auth'.format(self._gw)
         data = {"username": "{}".format(self._user),
                 "passwd": "{}".format(self._password)}
         response = requests.post(url=url, json=data)
@@ -77,9 +78,9 @@ class DojotAgent (object):
     def _has_dojot_been_set(self):
         # Check whether raspberry has been set in dojot
         if self._secure:
-            url = 'https://{}/device'.format(self._host)
+            url = 'https://{}/device'.format(self._gw)
         else:
-            url = 'http://{}:8000/device'.format(self._host)
+            url = 'http://{}:8000/device'.format(self._gw)
         response = requests.get(url=url, headers=self._auth_header)
         if response.status_code != 200:
             raise Exception("HTTP POST failed {}.".
@@ -96,9 +97,9 @@ class DojotAgent (object):
         # create template
         self._logger.info("Creating raspberry-pi template in dojot ...")
         if self._secure:
-            url = 'https://{}/template'.format(self._host)
+            url = 'https://{}/template'.format(self._gw)
         else:
-            url = 'http://{}:8000/template'.format(self._host)
+            url = 'http://{}:8000/template'.format(self._gw)
         data = {"label": "Raspberry-Pi-Sense-Hat",
                 "attrs": [{"label": "protocol",
                            "type": "meta",
@@ -134,9 +135,9 @@ class DojotAgent (object):
         # create device
         self._logger.info("Creating raspberry-pi device in dojot ...")
         if self._secure:
-            url = 'https://{}/device'.format(self._host)
+            url = 'https://{}/device'.format(self._gw)
         else:
-            url = 'http://{}:8000/device'.format(self._host)
+            url = 'http://{}:8000/device'.format(self._gw)
         data = {"templates": ["{}".format(template_id)],
                 "label": "Raspberry-Pi"}
         response = requests.post(url=url, headers=self._auth_header, json=data)
@@ -151,10 +152,10 @@ class DojotAgent (object):
 
         # set serial number
         if self._secure:
-            url = 'https://{}/device/{}'.format(self._host, self._device_id)
+            url = 'https://{}/device/{}'.format(self._gw, self._device_id)
 
         else:
-            url = 'http://{}:8000/device/{}'.format(self._host, self._device_id)
+            url = 'http://{}:8000/device/{}'.format(self._gw, self._device_id)
 
         # Get
         response = requests.get(url=url, headers=self._auth_header)

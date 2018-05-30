@@ -55,6 +55,8 @@ Options:
   -h, --help            show this help message and exit
   -H HOST, --host=HOST  MQTT host to connect to. Defaults to localhost.
   -P PORT, --port=PORT  MQTT port to connect to. Defaults to 1883.
+  -G GW, --api-gateway=GW
+                        API Gateway to connect to. Defaults to localhost.
   -t TENANT, --tenant=TENANT
                         Tenant identifier in dojot. Defaults to admin.
   -u USER, --user=USER  User identifier in dojot. Defaults to admin.
